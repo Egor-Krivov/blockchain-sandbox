@@ -1,0 +1,69 @@
+body {
+  padding-top: 40px;
+  padding-bottom: 40px;
+  background-color: #eee;
+}
+
+h2 {
+  text-align: center;
+}
+
+#balance, #transaction, #transaction-list, #table-transaction {
+  display: none;
+}
+
+#balance, #alert, #transaction-list {
+  max-width: 330px;
+  padding: 10px;
+  margin: 0 auto;
+}
+
+div.for-table {
+  display: flex;
+  justify-content: center;
+}
+
+#table-transaction {
+  align-self: center;
+  text-align:center;
+  width: auto;
+}
+
+.form-signin, .form-transaction {
+  max-width: 330px;
+  padding: 15px;
+  margin: 0 auto;
+}
+.form-signin, .form-transaction, .form-signin-heading,
+.form-transaction-heading, .checkbox {
+  margin-bottom: 10px;
+}
+.form-signin, .form-transaction, .checkbox {
+  font-weight: 400;
+}
+.form-signin, .form-transaction, .form-control {
+  position: relative;
+  box-sizing: border-box;
+  height: auto;
+  padding: 10px;
+  font-size: 16px;
+}
+.form-signin, .form-transaction, .form-control:focus {
+  z-index: 2;
+}
+.form-signin input[type="nickname"] {
+  margin-bottom: 15px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.form-transaction input[type="sum"] {
+  margin-bottom: 15px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.form-transaction input[type="recipient"] {
+  margin-bottom: 15px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}

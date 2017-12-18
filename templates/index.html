@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Wallet</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css">
+    <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"></script> -->
+
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"> -->
+
+    <!-- Custom styles for this template -->
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/index.css') }}">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <script type="text/javascript" src="{{ url_for('static', filename='handlers.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='utils.js') }}"></script>
+
+    <script type="text/javascript" src="{{ url_for('static', filename='cryptico/jsbn.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='cryptico/random.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='cryptico/hash.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='cryptico/rsa.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='cryptico/aes.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='cryptico/api.js') }}"></script>
+
+
+  </head>
+
+  <body>
+
+    <div class="container" id='registration'>
+
+      <!--<form class="form-signin" action='http://localhost:5000/new_wallet' method="post"> -->
+      <form class="form-signin">
+        <h2 class="form-signin-heading">Create your wallet</h2>
+        <label for="inputNickname" class="sr-only">Nickname</label>
+        <input type="nickname" id="inputNickname" class="form-control" placeholder="Nickname" oninvalid="this.setCustomValidity('Please, fill this field')" required autofocus>
+        <input type='button' class="btn btn-lg btn-primary btn-block" id="create-key" onclick="hideField()" value="Create">
+      </form>
+
+    </div> <!-- /container -->
+
+
+    <div id='balance'>
+      <h2 id="showBalance"></h2>
+    </div>
+
+    <div id='transaction'>
+
+      <form class="form-transaction">
+        <h2 class="form-transaction-heading">Create transaction</h2>
+        <label for="inputRecipient" class="sr-only">Recipient</label>
+        <input type="recipient" id="inputRecipient" class="form-control" placeholder="Recipient" required>
+        <input type="sum" id="inputSum" class="form-control" placeholder="Amount" required>
+        <input type='button' class="btn btn-lg btn-primary btn-block" id="create-transaction" value="Send">
+      </form>
+
+    </div>
+
+    <div id="transaction-list">
+      <h2>Transaction list</h2>
+      <form>
+        <input type='button' class="btn btn-lg btn-primary btn-block" id="table-update" value="Update list">
+      </form>
+    </div> 
+
+    <div class='for-table' align='center'>
+      <table class="table table-striped align-middle" id='table-transaction'>
+        <thead>
+          <tr>
+            <th scope="col">Sender</th>
+            <th scope="col">Recipient</th>
+            <th scope="col">Amount</th>
+            <th scope="col">Number of blocks</th>
+          </tr>
+        </thead>
+        <tbody id='transactions'>
+      
+        </tbody>
+      </table>
+    </div>
+
+
+  </body>
+</html>
