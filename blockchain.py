@@ -1,61 +1,77 @@
-import hashlib
-import json
 import requests
 from time import time
+from uuid import uuid4
 
-try:
-    from urllib.parse import urlparse
-except ImportError:
-     from urlparse import urlparse
+from money_source import money_source
+from crypto_utils import compute_proof_of_work, model_transactions
+from urllib.parse import urlparse
+from log import logging
+
+starting_balance = 100
 
 
-class Blockchain(object):
+class Blockchain:
     def __init__(self):
+        # Generate a globally unique address for this node
+        self.node_identifier = str(uuid4()).replace('-', '')
+
+        # Purse keeps money of all users at the latest block, not including current transactions
+        self.purse = {self.node_identifier: 0, money_source: 0}
+        # Public keys of all users
+        self.signatures = {self.node_identifier: '0', money_source: '0'}
+
         self.chain = []
         self.current_transactions = []
         self.nodes = set()
 
         # Create the genesis block
-        self.new_block(previous_hash=1, proof=100)
+        self.mine(previous_hash=1)
 
-    def new_block(self, proof, previous_hash=None):
-        """
-        Create a new Block in the Blockchain
-        :param proof: <int> The proof given by the Proof of Work algorithm
-        :param previous_hash: (Optional) <str> Hash of previous Block
-        :return: <dict> New Block
-        """
+    def add_user(self, name, public_key):
+        if name not in self.signatures:
+            self.signatures[name] = public_key
+            self.purse[name] = 0
+            self.add_transaction(money_source, name, starting_balance, self.signatures[money_source])
+            return True
+        else:
+            return False
+
+    def mine(self, previous_hash=None):
+        """Create a new Block in the Blockchain"""
+
+        # We must receive a reward for finding the proof.
+        # The sender is "0" to signify that this node has mined a new coin.
+        self.add_transaction("0", self.node_identifier, 1, self.signatures[money_source])
+
+        valid_transactions, new_purse = model_transactions(self.current_transactions, self.purse, self.signatures)
+        if len(valid_transactions) != len(self.current_transactions):
+            logging.debug('Some transactions were rejected!')
 
         block = {
             'index': len(self.chain) + 1,
             'timestamp': time(),
-            'transactions': self.current_transactions,
-            'proof': proof,
-            'previous_hash': previous_hash or self.hash(self.chain[-1]),
+            'transactions': valid_transactions,
+            'previous_hash': previous_hash or self.chain[-1]['hash']
         }
 
-        # Reset the current list of transactions
+        block['hash'], block['nonce'] = compute_proof_of_work(block)
+
+        self.purse = new_purse
         self.current_transactions = []
-
         self.chain.append(block)
-        return block
 
-    def new_transaction(self, sender, recipient, amount):
-        """
-        Creates a new transaction to go into the next mined Block
-        :param sender: <str> Address of the Sender
-        :param recipient: <str> Address of the Recipient
-        :param amount: <int> Amount
-        :return: <int> The index of the Block that will hold this transaction
-        """
-
+    def add_transaction(self, sender, recipient, amount, signature):
+        """Creates a new transaction to go into the next mined Block"""
         self.current_transactions.append({
             'sender': sender,
             'recipient': recipient,
             'amount': amount,
+            'signature': signature
         })
 
-        return self.last_block['index'] + 1
+    @property
+    def last_block(self):
+        return self.chain[-1]
 
     def register_node(self, address):
         """
@@ -73,6 +89,7 @@ class Blockchain(object):
         :param chain: <list> A blockchain
         :return: <bool> True if valid, False if not
         """
+        # TODO rewrite
 
         last_block = chain[0]
         current_index = 1
@@ -87,7 +104,7 @@ class Blockchain(object):
                 return False
 
             # Check that the Proof of Work is correct
-            if not self.valid_proof(last_block['proof'], block['proof']):
+            if not validate_proof(last_block['proof'], block['proof']):
                 return False
 
             last_block = block
@@ -101,6 +118,7 @@ class Blockchain(object):
         by replacing our chain with the longest one in the network.
         :return: <bool> True if our chain was replaced, False if not
         """
+        # TODO check
 
         neighbours = self.nodes
         new_chain = None
@@ -127,47 +145,3 @@ class Blockchain(object):
             return True
 
         return False
-
-    @property
-    def last_block(self):
-        return self.chain[-1]
-
-    @staticmethod
-    def hash(block):
-        """
-        Creates a SHA-256 hash of a Block
-        :param block: <dict> Block
-        :return: <str>
-        """
-
-        # We must make sure that the Dictionary is Ordered, or we'll have inconsistent hashes
-        block_string = json.dumps(block, sort_keys=True).encode()
-        return hashlib.sha256(block_string).hexdigest()
-
-    def proof_of_work(self, last_proof):
-        """
-        Simple Proof of Work Algorithm:
-         - Find a number p' such that hash(pp') contains leading 4 zeroes, where p is the previous p'
-         - p is the previous proof, and p' is the new proof
-        :param last_proof: <int>
-        :return: <int>
-        """
-
-        proof = 0
-        while self.valid_proof(last_proof, proof) is False:
-            proof += 1
-
-        return proof
-
-    @staticmethod
-    def valid_proof(last_proof, proof):
-        """
-        Validates the Proof: Does hash(last_proof, proof) contain 4 leading zeroes?
-        :param last_proof: <int> Previous Proof
-        :param proof: <int> Current Proof
-        :return: <bool> True if correct, False if not.
-        """
-
-        guess = (str(last_proof) + str(proof)).encode()
-        guess_hash = hashlib.sha256(guess).hexdigest()
-        return guess_hash[:4] == "0000"
