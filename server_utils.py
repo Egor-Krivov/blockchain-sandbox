@@ -1,5 +1,3 @@
-from blockchain import Blockchain
-
 def get_user_transactions(blockchain, username):
     transactions = {}
     chain = blockchain.chain

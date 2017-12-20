@@ -5,24 +5,9 @@ var keys;
 document.addEventListener("DOMContentLoaded", function() {
     "use strict";
 
-    if (!window.crypto || !window.crypto.subtle) {
-        alert("Your current browser does not support the Web Cryptography API! This page will not work.");
-        return;
-    }
     document.getElementById("create-key").addEventListener("click", handleCreateKeyPairClick);
     document.getElementById("create-transaction").addEventListener("click", handleTransactionClick);
     document.getElementById("table-update").addEventListener("click", handleTableClick);
-    //document.getElementById("inputNickname").addEventListener("keyup", handleCreateKeyKeyup);
-
-
-    // function handleCreateKeyKeyup() {
-    //     if (event.keyCode === 13) {
-    //         //document.getElementById("create-key").click();
-    //         handleCreateKeyPairClick();
-    //         hideField();
-    //     }
-    // };
-
 
     // Key pair creation section
     function handleCreateKeyPairClick() {
@@ -32,15 +17,16 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
         name = nickname;
-        var Bits = 1024; 
-        keys = cryptico.generateRSAKey(name, Bits);
-        publicKey = cryptico.publicKeyString(keys);
-        //privateKey = cryptico.privateKeyString(keys);
+        var rsa = forge.pki.rsa;
+
+        keys = rsa.generateKeyPair({bits: 1024, e: 0x10001});
+        publicKey = keys.publicKey;
+        privateKey = keys.privateKey;
 
         var xhttp = new XMLHttpRequest();
         xhttp.open("POST", "http://localhost:5000/user/registration", true);
         xhttp.setRequestHeader("Content-type", "application/json");
-        var data = JSON.stringify({'name': name, 'publicKey':publicKey});
+        var data = JSON.stringify({'name': name, 'publicKey': pki.getPublicKeyFingerprint(publicKey, {encoding: 'hex'});});
         xhttp.send(data);
 
         xhttp.onreadystatechange = function () {
@@ -59,10 +45,13 @@ document.addEventListener("DOMContentLoaded", function() {
                 document.body.insertBefore(newDiv, currentDiv);
             }
         } 
+
         if  (xhttp.readyState === 4 && xhttp.status !== 401) {
+
             updateBalance();
             hideField();
         }};
+
     }
 
     function handleTransactionClick() {
@@ -76,7 +65,11 @@ document.addEventListener("DOMContentLoaded", function() {
         document.getElementById("inputSum").value = null;
 
         var plaintext = name + recipient + amount;
-        var sign = keys.signString(plaintext, "sha256");
+        //var sign = keys.signString(plaintext, "sha256");
+
+        var md = forge.md.sha256.create();
+        md.update('plaintext', 'utf8');
+        var sign = privateKey.sign(md);
 
 
         var xhttp = new XMLHttpRequest();
@@ -168,3 +161,13 @@ function updateBalance() {
     }};
 
 };
+
+function sendKey() {
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("POST", "http://localhost:5000/user/registration_key", true);
+    xhttp.setRequestHeader("Content-type", "multipart.form-data");
+
+    var formdata = new FormData();
+    formdata.append('key', forge.pki.publicKeyToPem(publicKey));
+    xhttp.send(formdata);   
+}
