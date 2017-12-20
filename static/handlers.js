@@ -1,4 +1,6 @@
 
+var host = '192.168.1.49:5000';
+
 var publicKey, privateKey, name;
 var keys; 
 
@@ -24,9 +26,13 @@ document.addEventListener("DOMContentLoaded", function() {
         privateKey = keys.privateKey;
 
         var xhttp = new XMLHttpRequest();
-        xhttp.open("POST", "http://localhost:5000/user/registration", true);
+        var ip = location.host;
+        if (ip === 'localhost:5000') {
+            host = ip;
+        }
+        xhttp.open("POST", "http://" + host + "/user/registration", true);
         xhttp.setRequestHeader("Content-type", "application/json");
-        var data = JSON.stringify({'name': name, 'publicKey': pki.getPublicKeyFingerprint(publicKey, {encoding: 'hex'});});
+        var data = JSON.stringify({'name': name, 'publicKey': forge.pki.getPublicKeyFingerprint(publicKey, {encoding: 'hex'})});
         xhttp.send(data);
 
         xhttp.onreadystatechange = function () {
@@ -73,7 +79,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
         var xhttp = new XMLHttpRequest();
-        xhttp.open("POST", "http://localhost:5000/transactions/new", true);
+        xhttp.open("POST", "http://" + host + "/transactions/new", true);
         xhttp.setRequestHeader("Content-type", "application/json");
         var data = JSON.stringify({'sender': name, 'recipient':recipient, 'amount':amount, 'sign': sign});
         xhttp.send(data);
@@ -103,7 +109,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function handleTableClick() {
 
         var xhttp = new XMLHttpRequest();
-        xhttp.open("POST", "http://localhost:5000/user/transactions", true);
+        xhttp.open("POST", "http://" + host + "/user/transactions", true);
         xhttp.setRequestHeader("Content-type", "application/json");
 
         var data = JSON.stringify({'name': name});
@@ -147,7 +153,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 function updateBalance() {
     var xhttp = new XMLHttpRequest();
-    xhttp.open("POST", "http://localhost:5000/user/balance", true);
+    xhttp.open("POST", "http://" + host + "/user/balance", true);
     xhttp.setRequestHeader("Content-type", "application/json");
 
     var data = JSON.stringify({'name': name});
