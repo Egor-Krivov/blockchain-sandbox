@@ -39,13 +39,6 @@ def model_transactions(transactions, starting_purse: dict, signatures) -> ([dict
     return transactions, purse
 
 
-def verify_transaction_signature(transaction, signature):
-    if transaction['sender'] == money_source:
-        return True
-    # TODO normal signing
-    return True
-
-
 def verify_block_hash(block):
     block_hash = compute_block_hash(block)
     return block_hash == block['hash'] and verify_block_hash_difficulty(block_hash)
@@ -57,15 +50,22 @@ def compute_block_hash(block):
 
 
 def compute_block_header(block):
-    # block_string = json.dumps(block, sort_keys=True).encode()
-    # return hashlib.sha256(block_string).hexdigest()
-    # TODO rewrite
-    return '10'
+    header = '|'.join([str(block['index']), block['timestamp'], str(block['previous_hash'])]) + '|'
+    header += '|'.join([compute_transaction_hash(t) for t in block['transactions']])
+    return header
 
 
 def compute_transaction_hash(transaction):
-    transaction_header = transaction['sender'] + transaction['receiver'] + str(transaction['amount'])
-    return hashlib.sha256(transaction_header.encode('utf-8').hexdigest())
+    transaction_header = '|'.join([transaction['sender'], transaction['recipient'], str(transaction['amount']),
+                                   transaction['signature']])
+    return hashlib.sha256(transaction_header.encode('utf-8')).hexdigest()
+
+# Signing
+def verify_transaction_signature(transaction, signature):
+    if transaction['sender'] == money_source:
+        return True
+    # TODO normal signing
+    return True
 
 
 # Crypto functions for block header

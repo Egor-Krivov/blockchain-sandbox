@@ -19,4 +19,4 @@ class TestBlockchain(unittest.TestCase):
         self.assertEqual(blockchain.purse['bob'], 150)
         self.assertEqual(blockchain.purse[blockchain.node_identifier], 3)
 
-        print(blockchain.chain)
+        #blockchain.ver

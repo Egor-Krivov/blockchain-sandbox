@@ -3,7 +3,7 @@ from time import time
 from uuid import uuid4
 
 from money_source import money_source
-from crypto_utils import compute_proof_of_work, model_transactions
+from crypto_utils import compute_proof_of_work, model_transactions, verify_block_hash
 from urllib.parse import urlparse
 from log import logging
 
@@ -49,7 +49,7 @@ class Blockchain:
 
         block = {
             'index': len(self.chain) + 1,
-            'timestamp': time(),
+            'timestamp': str(time()),
             'transactions': valid_transactions,
             'previous_hash': previous_hash or self.chain[-1]['hash']
         }
@@ -91,23 +91,16 @@ class Blockchain:
         """
         # TODO rewrite
 
-        last_block = chain[0]
-        current_index = 1
-
-        while current_index < len(chain):
-            block = chain[current_index]
-            print(last_block)
-            print(block)
-            print("\n-----------\n")
+        for block, prev_block in zip(chain[1:], chain[:-1]):
             # Check that the hash of the block is correct
-            if block['previous_hash'] != self.hash(last_block):
+            if block['prev_hash'] != prev_block['hash']:
                 return False
 
             # Check that the Proof of Work is correct
-            if not validate_proof(last_block['proof'], block['proof']):
+            if not validate_proof(prev_block['proof'], block['proof']):
                 return False
 
-            last_block = block
+            prev_block = block
             current_index += 1
 
         return True
