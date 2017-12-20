@@ -1,5 +1,7 @@
 
-var host = '192.168.1.49:5000';
+// should be changde before start
+// host of server in network
+var host = '192.168.128.1:5000';
 
 var publicKey, privateKey, name;
 var keys; 
