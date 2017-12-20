@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function() {
         //privateKey = cryptico.privateKeyString(keys);
 
         var xhttp = new XMLHttpRequest();
-        xhttp.open("POST", "http://localhost:5000/wallet_register", true);
+        xhttp.open("POST", "http://localhost:5000/user/registration", true);
         xhttp.setRequestHeader("Content-type", "application/json");
         var data = JSON.stringify({'name': name, 'publicKey':publicKey});
         xhttp.send(data);
@@ -50,15 +50,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
         var xhttp = new XMLHttpRequest();
-        xhttp.open("POST", "http://localhost:5000/transaction", true);
+        xhttp.open("POST", "http://localhost:5000/transactions/new", true);
         xhttp.setRequestHeader("Content-type", "application/json");
-        var data = JSON.stringify({'name': name, 'recipient':recipient, 'amount':amount, 'sign': sign});
+        var data = JSON.stringify({'sender': name, 'recipient':recipient, 'amount':amount, 'sign': sign});
         xhttp.send(data);
 
         xhttp.onreadystatechange = function () {
-        if (xhttp.readyState === 4 && xhttp.status === 200) {
+        if (xhttp.readyState === 4 && xhttp.status === 404) {
             var json = JSON.parse(xhttp.responseText);
-            if (json.message === 'fail') {
+            if (json.message === 'No such recipient') {
                 var newDiv = document.createElement("div");
                 newDiv.className = "alert alert-danger alert-dismissible fade show align-middle";
                 newDiv.idName = 'alert';
@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function handleTableClick() {
 
         var xhttp = new XMLHttpRequest();
-        xhttp.open("POST", "http://localhost:5000/transaction_list", true);
+        xhttp.open("POST", "http://localhost:5000/user/transactions", true);
         xhttp.setRequestHeader("Content-type", "application/json");
 
         var data = JSON.stringify({'name': name});
@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 function updateBalance() {
     var xhttp = new XMLHttpRequest();
-    xhttp.open("POST", "http://localhost:5000/balance", true);
+    xhttp.open("POST", "http://localhost:5000/user/balance", true);
     xhttp.setRequestHeader("Content-type", "application/json");
 
     var data = JSON.stringify({'name': name});

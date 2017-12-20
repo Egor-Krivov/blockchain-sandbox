@@ -21,23 +21,40 @@ node_identifier = str(uuid4()).replace('-', '')
 blockchain = Blockchain()
 
 
+def nocache(view):
+    @wraps(view)
+    def no_cache(*args, **kwargs):
+        response = make_response(view(*args, **kwargs))
+        response.headers['Last-Modified'] = datetime.now()
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '-1'
+        return response
+
+    return update_wrapper(no_cache, view)
+
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
     values = request.get_json()
-    print(request)
 
     # Check that the required fields are in the POST'ed data
-    required = ['sender', 'recipient', 'amount']
+    required = ['sender', 'recipient', 'amount', 'sign']
     if not all(k in values for k in required):
-        return 'Missing values', 400
+        response = {'message': 'Missing values'}
+        return jsonify(response), 400
+
+    if values['recipient'] not in blockchain.signatures:
+        response = {'message': 'No such recipient'}
+        return jsonify(response), 404
 
     # Create a new Transaction
-    index = blockchain.add_transaction(values['sender'], values['recipient'], values['amount'])
+    blockchain.add_transaction(values['sender'], values['recipient'], values['amount'], values['sign'])
+    print('Transaction: {} --> {} {}'.format(values['sender'], values['recipient'], values['amount']))
 
-    response = {'message': 'Transaction will be added to Block ' + str(index)}
+    response = {'message': 'Transaction is added'}
     return jsonify(response), 201
 
-
+"""
 @app.route('/chain', methods=['GET'])
 def full_chain():
     response = {
@@ -45,26 +62,8 @@ def full_chain():
         'length': len(blockchain.chain),
     }
     return jsonify(response), 200
-
-
-@app.route('/nodes/register', methods=['POST'])
-def register_nodes():
-    values = request.get_json()
-
-    nodes = values.get('nodes')
-    if nodes is None:
-        return "Error: Please supply a valid list of nodes", 400
-
-    for node in nodes:
-        blockchain.register_node(node)
-
-    response = {
-        'message': 'New nodes have been added',
-        'total_nodes': list(blockchain.nodes),
-    }
-    return jsonify(response), 201
-
-
+"""
+"""
 @app.route('/nodes/resolve', methods=['GET'])
 def consensus():
     replaced = blockchain.resolve_conflicts()
@@ -81,60 +80,63 @@ def consensus():
         }
 
     return jsonify(response), 200
-
-# <----------------- Below to do ---------------->
-
-def nocache(view):
-    @wraps(view)
-    def no_cache(*args, **kwargs):
-        response = make_response(view(*args, **kwargs))
-        response.headers['Last-Modified'] = datetime.now()
-        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
-        response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '-1'
-        return response
-
-    return update_wrapper(no_cache, view)
-
+"""
 
 @app.route('/', methods=['GET', 'POST'])
 @nocache
 def form():
     return render_template('index.html')
 
-@app.route('/wallet_register', methods=['POST'])
-def wallet_register():
-    values = request.get_json()
-    print('PK:', values.get('publicKey'))
-    print('name:', values.get('name'))
-    print(values)
-    response = {
-        'message': 'New wallet have been added',
-    }
-    return jsonify(response), 201
 
-@app.route('/transaction', methods=['POST'])
-def transaction():
+@app.route('/user/registration', methods=['POST'])
+def user_registration():
     values = request.get_json()
-    print(values)
-    response = {
-        'message': 'fail',
-    }
-    return jsonify(response), 200
 
-@app.route('/balance', methods=['POST'])
+    required = ['name', 'publicKey']
+    if not all(k in values for k in required):
+        response = {'message': 'Missing values'}
+        return jsonify(response), 400
+
+    name = values.get('name')
+    key = values.get('publicKey')
+    if blockchain.add_user(name, key):
+        print('User {} is added.'.format(name))
+
+        response = {
+            'message': 'New user have been added'
+        }
+        return jsonify(response), 201
+    else:
+        print('User {} already exists.'.format(name))
+
+        response = {
+            'message': 'Such name already exists'
+        }
+        return jsonify(response), 401
+
+
+@app.route('/user/balance', methods=['POST'])
 def balance():
     values = request.get_json()
-    print(values)
+    name = values.get('name')
+
+    required = ['name']
+    if not all(k in values for k in required):
+        response = {'message': 'Missing values'}
+        return jsonify(response), 400
+
+    if name not in blockchain.signatures:
+        response = {'message': 'No such name'}
+        return jsonify(response), 401
+
     response = {
-        'balance': 100,
+        'balance': blockchain.purse[name],
     }
     return jsonify(response), 200
 
-@app.route('/transaction_list', methods=['POST'])
+@app.route('/user/transactions', methods=['POST'])
 def transaction_list():
     values = request.get_json()
-    print('transaction_list', values)
     response = {
         '1': {'sender':'egor',
               'recipient': 'ilya',
@@ -146,7 +148,6 @@ def transaction_list():
               'n_blocks': 6}
     }
     return jsonify(response), 200
-
 
 
 if __name__ == '__main__':
