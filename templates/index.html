@@ -36,12 +36,12 @@
 
     <div class="container" id='registration'>
 
-      <!--<form class="form-signin" action='http://localhost:5000/new_wallet' method="post"> -->
       <form class="form-signin">
         <h2 class="form-signin-heading">Create your wallet</h2>
         <label for="inputNickname" class="sr-only">Nickname</label>
-        <input type="nickname" id="inputNickname" class="form-control" placeholder="Nickname" oninvalid="this.setCustomValidity('Please, fill this field')" required autofocus>
-        <input type='button' class="btn btn-lg btn-primary btn-block" id="create-key" onclick="hideField()" value="Create">
+        <input type="nickname" id="inputNickname" class="form-control" placeholder="Nickname" maxlength='10' oninvalid="this.setCustomValidity('Please, fill this field')" required autofocus>
+        <input type="text" value="Fix IE bug" style="display:none;">
+        <input type='button' class="btn btn-lg btn-primary btn-block" id="create-key" value="Create">
       </form>
 
     </div> <!-- /container -->
@@ -56,8 +56,9 @@
       <form class="form-transaction">
         <h2 class="form-transaction-heading">Create transaction</h2>
         <label for="inputRecipient" class="sr-only">Recipient</label>
-        <input type="recipient" id="inputRecipient" class="form-control" placeholder="Recipient" required>
-        <input type="sum" id="inputSum" class="form-control" placeholder="Amount" required>
+        <input type="recipient" id="inputRecipient" class="form-control" maxlength='10' placeholder="Recipient" required>
+        <label for="inputSum" class="sr-only">Amount</label>
+        <input type="sum" id="inputSum" class="form-control" placeholder="Amount" max='1000' required>
         <input type='button' class="btn btn-lg btn-primary btn-block" id="create-transaction" value="Send">
       </form>
 

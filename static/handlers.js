@@ -1,3 +1,4 @@
+
 var publicKey, privateKey, name;
 var keys; 
 
@@ -11,6 +12,17 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("create-key").addEventListener("click", handleCreateKeyPairClick);
     document.getElementById("create-transaction").addEventListener("click", handleTransactionClick);
     document.getElementById("table-update").addEventListener("click", handleTableClick);
+    //document.getElementById("inputNickname").addEventListener("keyup", handleCreateKeyKeyup);
+
+
+    // function handleCreateKeyKeyup() {
+    //     if (event.keyCode === 13) {
+    //         //document.getElementById("create-key").click();
+    //         handleCreateKeyPairClick();
+    //         hideField();
+    //     }
+    // };
+
 
     // Key pair creation section
     function handleCreateKeyPairClick() {
@@ -31,8 +43,26 @@ document.addEventListener("DOMContentLoaded", function() {
         var data = JSON.stringify({'name': name, 'publicKey':publicKey});
         xhttp.send(data);
 
-        updateBalance(); 
+        xhttp.onreadystatechange = function () {
+        if (xhttp.readyState === 4 && xhttp.status === 401) {
+            var json = JSON.parse(xhttp.responseText);
+            if (json.message === 'Such name already exists') {
+                var newDiv = document.createElement("div");
+                newDiv.className = "alert alert-danger alert-dismissible fade show align-middle";
+                newDiv.idName = 'alert';
+                newDiv.style.width = '330px';
+                newDiv.style.margin = 'auto';
+                    // add the newly created element and its content into the DOM 
+                var currentDiv = document.getElementById("balance"); 
 
+                newDiv.innerHTML = '<strong>Such name already exists.</strong><button type="button" class="close" data-dismiss="alert" aria-label="Close"> <span aria-hidden="true">&times;</span></button>';
+                document.body.insertBefore(newDiv, currentDiv);
+            }
+        } 
+        if  (xhttp.readyState === 4 && xhttp.status !== 401) {
+            updateBalance();
+            hideField();
+        }};
     }
 
     function handleTransactionClick() {
@@ -67,7 +97,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     // add the newly created element and its content into the DOM 
                 var currentDiv = document.getElementById("transaction-list"); 
 
-                newDiv.innerHTML = '<strong>Error!</strong><button type="button" class="close" data-dismiss="alert" aria-label="Close"> <span aria-hidden="true">&times;</span></button>';
+                newDiv.innerHTML = '<strong>No such recipient!</strong><button type="button" class="close" data-dismiss="alert" aria-label="Close"> <span aria-hidden="true">&times;</span></button>';
                 document.body.insertBefore(newDiv, currentDiv);
             }
         }};
@@ -134,22 +164,7 @@ function updateBalance() {
     if (xhttp.readyState === 4 && xhttp.status === 200) {
         var json = JSON.parse(xhttp.responseText);
         var sum = json.balance;
-        document.getElementById("showBalance").innerHTML = 'Balance: ' + sum;
+        document.getElementById("showBalance").innerHTML = '<p>Name: ' + name + '</p>' + '<p>Balance: ' + sum + '</p>';
     }};
 
 };
-
-// function updateBalance() {
-//     fetch("http://localhost:5000/balance", {
-//         method: 'POST',
-//         body: JSON.stringify({'name': name})
-//     })
-//         .then(function (response) {
-//             return response.json();
-//         })
-//         .then(function (json) {
-//             var sum = json.balance;
-//             document.getElementById("showBalance").innerHTML = 'Balance: ' + sum;
-//             console.log(sum);
-//         });
-// };
