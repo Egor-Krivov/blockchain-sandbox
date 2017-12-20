@@ -1,1 +1,1 @@
-# [Learn Blockchains by Building One](https://medium.com/p/117428612f46)
+Building simple cryptocurrency with a web application for a front-end
